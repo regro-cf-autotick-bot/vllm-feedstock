@@ -27,8 +27,8 @@ source:
       - patches/0009-Use-PREFIX-for-CUDA-include-paths-in-DeepGEMM-build.patch
   # Needs to be vendored because vLLM uses a modified version of the flash attention primitives that supports KV-caching.
   # see https://github.com/vllm-project/vllm/blob/v{{ version }}/cmake/external_projects/vllm_flash_attn.cmake#L41
-  - url: https://github.com/vllm-project/flash-attention/archive/caaa4eb59845388a20b1f435ecaafb4bd9517ad8.tar.gz
-    sha256: bc680ffb076b7f0ea3ff851772622acea950e69f3731f9f5fdeb8887f7dabf2c
+  - url: https://github.com/vllm-project/flash-attention/archive/28e862d21806bc3580207aa0ad4e2759151e9827.tar.gz
+    sha256: 1d983c59cfd674a654bc6809089302e572a9949c42660733873ab88a17dedc0f
     target_directory: flash-attention
   # cutlass is a git submodule of flash-attention (not included in GitHub tarballs)
   - url: https://github.com/NVIDIA/cutlass/archive/62750a2b75c802660e4894434dc55e839f322277.tar.gz
@@ -154,7 +154,7 @@ requirements:
     - llguidance >=1.7.0,<1.8.0
     - lm-format-enforcer ==0.11.3
     - mcp
-    - mistral-common >=1.11.5
+    - mistral-common >=1.11.6
     # model-hosting-container-standards >=0.1.14,<1.0.0
     - msgspec
     - ninja
@@ -262,3 +262,4 @@ extra:
     - shermansiu
     - h-vetinari
     - xhochy
+    - LeeNethertonQC
