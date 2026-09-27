@@ -53,13 +53,20 @@ build:
         - if: aarch64
           then: export MAX_JOBS=9
           else: export MAX_JOBS=5
-        # Override the CUDA architectures configured in the conda-forge nvcc package: https://github.com/conda-forge/cuda-nvcc-feedstock/blob/7843e9f1b9ea6bc555cd70c247d774189fc34110/recipe/conda_build_config.yaml#L21-L28
-        - export CUDAARCHS="70-real;80-real;86-real;89-real;90a-real;100f-real;120a-real"
-        - export TORCH_CUDA_ARCH_LIST="7.0;8.0;8.6;8.9;9.0;10.0;12.0+PTX"
-        # not usable with pytorch: https://github.com/pytorch/pytorch/issues/172034
-        - export CMAKE_CUDA_ARCHITECTURES="70;80;86;89;90;100;120"
-        # for vendored cutlass, see https://github.com/NVIDIA/cutlass/blob/v4.0.0/CMakeLists.txt
-        - export CUTLASS_NVCC_ARCHS="70;80;86;89;90;100;120"
+        # CUDAARCHS is already set correctly by the conda-forge cuda-nvcc activation script for
+        # this CUDA version (see cuda-nvcc-feedstock's activate.sh + conda_build_config.yaml) —
+        # don't override it, or we reintroduce breakage on every CUDA bump (this is what broke
+        # the build under CUDA 13.0: the old hardcoded list still had sm_70, which CUDA 13 dropped).
+        # TORCH_CUDA_ARCH_LIST is set from CF_TORCH_CUDA_ARCH_LIST, which pytorch's own activation
+        # script bakes in from whatever archs the installed libtorch was actually compiled for.
+        - export TORCH_CUDA_ARCH_LIST="$CF_TORCH_CUDA_ARCH_LIST"
+        # CMAKE_CUDA_ARCHITECTURES is intentionally not set: pytorch's cmake/public/cuda.cmake
+        # forces it OFF once Torch is found (https://github.com/pytorch/pytorch/issues/172034),
+        # so setting it here has no effect.
+        # for vendored cutlass (flash-attention), which has no conda-forge-provided default;
+        # derive it from CUDAARCHS, stripping the -real/-virtual/a/f suffixes to match the
+        # plain-number style cutlass expects, see https://github.com/NVIDIA/cutlass/blob/v4.0.0/CMakeLists.txt
+        - export CUTLASS_NVCC_ARCHS="$(echo "$CUDAARCHS" | tr ';' '\n' | sed -E 's/-(real|virtual)$//; s/[af]$//' | sort -un | tr '\n' ';' | sed 's/;$//')"
     # ACL (Arm Compute Library) is not packaged in conda-forge; skip it
     - if: aarch64
       then:
